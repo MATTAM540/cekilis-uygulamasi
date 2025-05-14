@@ -292,9 +292,9 @@
 
     function updateWinnersList(winners) {
       winnersList.innerHTML = '';
-      winners.forEach((name, idx) => {
+      winners.forEach(name => {
         const li = document.createElement('li');
-        li.textContent = `${idx + 1}. ${name}`;
+        li.textContent = name;
         winnersList.appendChild(li);
       });
       winnersCard.style.display = winners.length > 0 ? 'block' : 'none';

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Çekiliş Uygulaması</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <div id="root">
+    <div
+      class="min-h-screen bg-gradient-to-br from-indigo-600 to-purple-800 text-white p-4 flex flex-col items-center justify-center">
+      <h1 class="text-3xl font-bold mb-4">Çekiliş Uygulaması</h1>
+
+      <div class="w-full max-w-xl mb-4 card">
+        <div class="p-4 space-y-2 card-content">
+          <label class="block text-sm">İsimleri (Excel'den kopyalanmış) yapıştır:</label>
+          <textarea rows="6" class="w-full p-2 rounded bg-white text-black resize-none names-input"
+            placeholder="Her satıra bir isim gelecek şekilde yapıştırın"></textarea>
+        </div>
+      </div>
+
+      <button class="button start-draw-button" disabled>
+        Çekilişi Başlat
+      </button>
+
+      <div class="my-6 text-4xl h-20 flex items-center justify-center current-name-container">
+        <div class="current-name"></div>
+      </div>
+
+      <div class="mt-6 w-full max-w-md winners-container">
+        <h2 class="text-2xl mb-2">Kazananlar</h2>
+        <ul class="list-disc list-inside text-lg winners-list">
+        </ul>
+      </div>
+
+      <div class="mt-6 w-full max-w-md">
+        <button class="w-full flex justify-between items-center settings-button">
+          <span>Ayarlar ⚙️</span>
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+            class="chevron-down transition-transform">
+            <path d="M6 9l6 6 6-6" />
+          </svg>
+        </button>
+
+        <div class="overflow-hidden settings-panel">
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm">Kazanan Sayısı:</label>
+              <input type="number" min="1" max="100" value="1" class="text-black winner-count-input" />
+            </div>
+            <div>
+              <label class="block text-sm">Her çekilişin süresi (sn):</label>
+              <input type="range" min="1" max="20" step="1" value="5" class="duration-slider" />
+              <span class="duration-value">5 saniye</span>
+            </div>
+            <div>
+              <label class="block text-sm">İsimler arası geçiş süresi (ms):</label>
+              <input type="range" min="50" max="1000" step="50" value="150" class="name-interval-slider" />
+              <span class="name-interval-value">150 ms</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <input type="checkbox" class="sequential-checkbox" checked />
+              <span>Tek tek sırayla belirlensin</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="script.js"></script>
+</body>
+
+</html>

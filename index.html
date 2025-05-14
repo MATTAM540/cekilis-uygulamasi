@@ -1,77 +1,347 @@
 <!DOCTYPE html>
 <html lang="tr">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Çekiliş Uygulaması</title>
-  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      min-height: 100vh;
+      margin: 0;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: linear-gradient(135deg, #6366f1 0%, #a21caf 100%);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .container {
+      width: 100%;
+      max-width: 430px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .card {
+      background: rgba(255,255,255,0.15);
+      border-radius: 1rem;
+      box-shadow: 0 4px 32px rgba(0,0,0,0.15);
+      padding: 2rem;
+      width: 100%;
+      margin-bottom: 2rem;
+      backdrop-filter: blur(2px);
+      box-sizing: border-box;
+    }
+    h1 {
+      font-size: 2.2rem;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 1.2rem;
+      color: #fff;
+      letter-spacing: 1px;
+      text-shadow: 0 2px 12px rgba(99,102,241,0.2);
+    }
+    label {
+      font-size: 1rem;
+      color: #e0e7ff;
+      margin-bottom: 0.3rem;
+      display: block;
+    }
+    textarea, input[type="number"] {
+      width: 100%;
+      padding: 0.75rem;
+      border-radius: 0.5rem;
+      border: none;
+      margin-bottom: 1rem;
+      font-size: 1rem;
+      color: #222;
+      background: #fff;
+      resize: none;
+      box-sizing: border-box;
+    }
+    textarea:focus, input[type="number"]:focus {
+      outline: 2px solid #a21caf;
+    }
+    .button {
+      width: 100%;
+      padding: 0.75rem;
+      border-radius: 0.5rem;
+      background: #6366f1;
+      color: #fff;
+      font-weight: bold;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s;
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+      box-shadow: 0 2px 8px rgba(99,102,241,0.12);
+    }
+    .button:disabled {
+      background: #a5b4fc;
+      cursor: not-allowed;
+    }
+    .button:hover:enabled {
+      background: #4f46e5;
+    }
+    .current-name {
+      min-height: 2.5rem;
+      font-size: 2rem;
+      font-weight: bold;
+      text-align: center;
+      margin: 1.3rem 0;
+      color: #fff;
+      letter-spacing: 1px;
+      text-shadow: 0 2px 12px rgba(99,102,241,0.2);
+    }
+    .winners-card {
+      background: rgba(255,255,255,0.10);
+      border-radius: 1rem;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+      padding: 1.2rem 2rem;
+      width: 100%;
+      margin-bottom: 2rem;
+      box-sizing: border-box;
+      min-height: 80px;
+    }
+    .winners-list {
+      list-style: decimal inside;
+      color: #fff;
+      font-size: 1.15rem;
+      margin: 0;
+      padding: 0;
+    }
+    .settings-panel {
+      background: rgba(255,255,255,0.10);
+      border-radius: 0.75rem;
+      padding: 1rem;
+      margin-top: 1rem;
+      display: none;
+      box-sizing: border-box;
+    }
+    .settings-panel.active {
+      display: block;
+    }
+    .settings-toggle {
+      width: 100%;
+      background: rgba(255,255,255,0.18);
+      color: #fff;
+      border: none;
+      border-radius: 0.5rem;
+      padding: 0.7rem 1rem;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      margin-bottom: 0.5rem;
+      transition: background 0.2s;
+    }
+    .settings-toggle:hover {
+      background: rgba(255,255,255,0.28);
+    }
+    .chevron {
+      transition: transform 0.3s;
+    }
+    .chevron.rotate {
+      transform: rotate(180deg);
+    }
+    .slider-value {
+      margin-left: 0.5rem;
+      font-size: 0.97rem;
+      color: #e0e7ff;
+    }
+    input[type="range"] {
+      width: 100%;
+      margin-bottom: 0.5rem;
+    }
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 1rem;
+      color: #e0e7ff;
+      margin-top: 0.5rem;
+    }
+    @media (max-width: 500px) {
+      .card, .winners-card {
+        padding: 1rem;
+      }
+      .container {
+        max-width: 98vw;
+      }
+    }
+  </style>
 </head>
-
 <body>
-  <div id="root">
-    <div
-      class="min-h-screen bg-gradient-to-br from-indigo-600 to-purple-800 text-white p-4 flex flex-col items-center justify-center">
-      <h1 class="text-3xl font-bold mb-4">Çekiliş Uygulaması</h1>
+  <div class="container">
+    <div class="card">
+      <h1>Çekiliş Uygulaması</h1>
+      <label for="namesInput">İsimleri (Excel'den kopyalanmış) yapıştır:</label>
+      <textarea id="namesInput" rows="6" placeholder="Her satıra bir isim gelecek şekilde yapıştırın"></textarea>
+      <button class="button" id="startDrawBtn" disabled>Çekilişi Başlat</button>
+      <div class="current-name" id="currentName"></div>
+    </div>
 
-      <div class="w-full max-w-xl mb-4 card">
-        <div class="p-4 space-y-2 card-content">
-          <label class="block text-sm">İsimleri (Excel'den kopyalanmış) yapıştır:</label>
-          <textarea rows="6" class="w-full p-2 rounded bg-white text-black resize-none names-input"
-            placeholder="Her satıra bir isim gelecek şekilde yapıştırın"></textarea>
-        </div>
-      </div>
+    <div class="winners-card" id="winnersCard" style="display:none;">
+      <h2 style="font-size:1.3rem; color:#fff; margin-bottom:0.5rem;">Kazananlar</h2>
+      <ul class="winners-list" id="winnersList"></ul>
+    </div>
 
-      <button class="button start-draw-button" disabled>
-        Çekilişi Başlat
-      </button>
-
-      <div class="my-6 text-4xl h-20 flex items-center justify-center current-name-container">
-        <div class="current-name"></div>
-      </div>
-
-      <div class="mt-6 w-full max-w-md winners-container">
-        <h2 class="text-2xl mb-2">Kazananlar</h2>
-        <ul class="list-disc list-inside text-lg winners-list">
-        </ul>
-      </div>
-
-      <div class="mt-6 w-full max-w-md">
-        <button class="w-full flex justify-between items-center settings-button">
-          <span>Ayarlar ⚙️</span>
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-            class="chevron-down transition-transform">
-            <path d="M6 9l6 6 6-6" />
-          </svg>
-        </button>
-
-        <div class="overflow-hidden settings-panel">
-          <div class="space-y-4">
-            <div>
-              <label class="block text-sm">Kazanan Sayısı:</label>
-              <input type="number" min="1" max="100" value="1" class="text-black winner-count-input" />
-            </div>
-            <div>
-              <label class="block text-sm">Her çekilişin süresi (sn):</label>
-              <input type="range" min="1" max="20" step="1" value="5" class="duration-slider" />
-              <span class="duration-value">5 saniye</span>
-            </div>
-            <div>
-              <label class="block text-sm">İsimler arası geçiş süresi (ms):</label>
-              <input type="range" min="50" max="1000" step="50" value="150" class="name-interval-slider" />
-              <span class="name-interval-value">150 ms</span>
-            </div>
-            <div class="flex items-center gap-2">
-              <input type="checkbox" class="sequential-checkbox" checked />
-              <span>Tek tek sırayla belirlensin</span>
-            </div>
-          </div>
-        </div>
-      </div>
+    <button class="settings-toggle" id="settingsToggle">
+      <span>Ayarlar ⚙️</span>
+      <span class="chevron" id="chevron">&#9660;</span>
+    </button>
+    <div class="settings-panel" id="settingsPanel">
+      <label for="winnerCount">Kazanan Sayısı:</label>
+      <input type="number" id="winnerCount" min="1" max="100" value="1" />
+      <label for="durationSlider">Her çekilişin süresi (sn): 
+        <span class="slider-value" id="durationValue">5</span>
+      </label>
+      <input type="range" id="durationSlider" min="1" max="20" value="5" />
+      <label for="intervalSlider">İsimler arası geçiş süresi (ms): 
+        <span class="slider-value" id="intervalValue">150</span>
+      </label>
+      <input type="range" id="intervalSlider" min="50" max="1000" step="50" value="150" />
+      <label class="checkbox-label">
+        <input type="checkbox" id="sequential" checked />
+        Tek tek sırayla belirlensin
+      </label>
     </div>
   </div>
-  <script src="script.js"></script>
-</body>
+  <script>
+    // Elementler
+    const namesInput = document.getElementById('namesInput');
+    const startDrawBtn = document.getElementById('startDrawBtn');
+    const currentNameDiv = document.getElementById('currentName');
+    const winnersList = document.getElementById('winnersList');
+    const winnersCard = document.getElementById('winnersCard');
+    const settingsToggle = document.getElementById('settingsToggle');
+    const settingsPanel = document.getElementById('settingsPanel');
+    const chevron = document.getElementById('chevron');
+    const winnerCountInput = document.getElementById('winnerCount');
+    const durationSlider = document.getElementById('durationSlider');
+    const durationValue = document.getElementById('durationValue');
+    const intervalSlider = document.getElementById('intervalSlider');
+    const intervalValue = document.getElementById('intervalValue');
+    const sequentialCheckbox = document.getElementById('sequential');
 
+    // Ayarlar
+    let duration = 5;
+    let winnerCount = 1;
+    let nameInterval = 150;
+    let sequential = true;
+    let isDrawing = false;
+
+    // Input etkinleştirme
+    namesInput.addEventListener('input', () => {
+      startDrawBtn.disabled = !namesInput.value.trim();
+    });
+
+    // Ayarlar paneli aç/kapa
+    settingsToggle.addEventListener('click', () => {
+      settingsPanel.classList.toggle('active');
+      chevron.classList.toggle('rotate');
+    });
+
+    // Ayar değişiklikleri
+    winnerCountInput.addEventListener('input', e => {
+      winnerCount = Number(e.target.value);
+    });
+    durationSlider.addEventListener('input', e => {
+      duration = Number(e.target.value);
+      durationValue.textContent = duration;
+    });
+    intervalSlider.addEventListener('input', e => {
+      nameInterval = Number(e.target.value);
+      intervalValue.textContent = nameInterval;
+    });
+    sequentialCheckbox.addEventListener('change', e => {
+      sequential = e.target.checked;
+    });
+
+    // Çekiliş fonksiyonları
+    function shuffleArray(array) {
+      const arr = [...array];
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    async function drawOne(availableNames) {
+      const durationMs = duration * 1000;
+      const startTime = Date.now();
+      return new Promise(resolve => {
+        const intervalId = setInterval(() => {
+          const randomName = availableNames[Math.floor(Math.random() * availableNames.length)];
+          currentNameDiv.textContent = randomName;
+          const elapsed = Date.now() - startTime;
+          if (elapsed >= durationMs) {
+            clearInterval(intervalId);
+            resolve(randomName);
+          }
+        }, nameInterval);
+      });
+    }
+
+    function updateWinnersList(winners) {
+      winnersList.innerHTML = '';
+      winners.forEach((name, idx) => {
+        const li = document.createElement('li');
+        li.textContent = `${idx + 1}. ${name}`;
+        winnersList.appendChild(li);
+      });
+      winnersCard.style.display = winners.length > 0 ? 'block' : 'none';
+    }
+
+    startDrawBtn.addEventListener('click', async () => {
+      if (isDrawing) return;
+      const cleanedNames = namesInput.value
+        .split('\n')
+        .map(name => name.trim())
+        .filter(name => name.length > 0);
+
+      if (cleanedNames.length < winnerCount) {
+        alert('Yeterli isim yok (tekrarsız seçim için)!');
+        return;
+      }
+
+      isDrawing = true;
+      startDrawBtn.disabled = true;
+      currentNameDiv.textContent = '';
+      updateWinnersList([]);
+
+      let availableNames = shuffleArray(cleanedNames);
+      let drawnWinners = [];
+
+      if (sequential) {
+        for (let i = 0; i < winnerCount; i++) {
+          const winner = await drawOne(availableNames);
+          drawnWinners.push(winner);
+          updateWinnersList(drawnWinners);
+          availableNames = availableNames.filter(n => n !== winner);
+          await sleep(500); // Kazanan gösterildikten sonra küçük bir bekleme
+        }
+      } else {
+        const promises = Array.from({ length: winnerCount }, async () => {
+          const winner = await drawOne(availableNames);
+          availableNames = availableNames.filter(n => n !== winner);
+          return winner;
+        });
+        drawnWinners = await Promise.all(promises);
+        updateWinnersList(drawnWinners);
+      }
+
+      isDrawing = false;
+      startDrawBtn.disabled = false;
+      currentNameDiv.textContent = '';
+    });
+  </script>
+</body>
 </html>

@@ -211,13 +211,6 @@
         <input type="checkbox" id="uniqueWinners" checked />
         Aynı kişi birden fazla kazanamasın
       </label>
-      <!-- YENİ AYAR: Art arda yapılan çekilişlerde aynı kişi çıkmasın -->
-      <!--
-      <label class="checkbox-label">
-        <input type="checkbox" id="noConsecutiveWinners" checked/>
-        Art arda çekilişlerde aynı kişi çıkmasın
-      </label>
-      -->
     </div>
   </div>
   <script>
@@ -237,7 +230,6 @@
     const intervalValue = document.getElementById('intervalValue');
     const sequentialCheckbox = document.getElementById('sequential');
     const uniqueWinnersCheckbox = document.getElementById('uniqueWinners');
-    const noConsecutiveWinnersCheckbox = document.getElementById('noConsecutiveWinners'); // YENİ
 
     // Ayarlar
     let duration = 5;
@@ -245,11 +237,7 @@
     let nameInterval = 150;
     let sequential = true;
     let uniqueWinners = true;
-    let noConsecutiveWinners = false; // YENİ
     let isDrawing = false;
-
-    // Art arda çekilişlerde çıkanlar (global)
-    let lastWinners = []; // YENİ
 
     // Input etkinleştirme
     namesInput.addEventListener('input', () => {
@@ -279,9 +267,6 @@
     });
     uniqueWinnersCheckbox.addEventListener('change', e => {
       uniqueWinners = e.target.checked;
-    });
-    noConsecutiveWinnersCheckbox.addEventListener('change', e => {
-      noConsecutiveWinners = e.target.checked;
     });
 
     // Çekiliş fonksiyonları
@@ -331,19 +316,8 @@
         .map(name => name.trim())
         .filter(name => name.length > 0);
 
-      // Art arda çekilişlerde aynı kişi çıkmasın ayarı aktifse, isim listesinden son kazananları çıkar
-      let filteredNames = cleanedNames;
-      if (noConsecutiveWinners && lastWinners.length > 0) {
-        filteredNames = cleanedNames.filter(name => !lastWinners.includes(name));
-      }
-
-      // Yeterli isim kontrolü
-      if (uniqueWinners && filteredNames.length < winnerCount) {
+      if (uniqueWinners && cleanedNames.length < winnerCount) {
         alert('Yeterli isim yok (tekrarsız seçim için)!');
-        return;
-      }
-      if (!uniqueWinners && filteredNames.length === 0) {
-        alert('Yeterli isim yok!');
         return;
       }
 
@@ -352,7 +326,7 @@
       currentNameDiv.textContent = '';
       updateWinnersList([]);
 
-      let availableNames = shuffleArray(filteredNames);
+      let availableNames = shuffleArray(cleanedNames);
       let drawnWinners = [];
 
       if (sequential) {
@@ -381,13 +355,6 @@
       isDrawing = false;
       startDrawBtn.disabled = false;
       currentNameDiv.textContent = '';
-
-      // Art arda çekilişlerde aynı kişi çıkmasın ayarı açıksa, son kazananları kaydet
-      if (noConsecutiveWinners) {
-        lastWinners = [...drawnWinners];
-      } else {
-        lastWinners = [];
-      }
     });
   </script>
 </body>

@@ -207,6 +207,10 @@
         <input type="checkbox" id="sequential" checked />
         Tek tek sırayla belirlensin
       </label>
+      <label class="checkbox-label">
+        <input type="checkbox" id="uniqueWinners" checked />
+        Aynı kişi birden fazla kazanamasın
+      </label>
     </div>
   </div>
   <script>
@@ -225,12 +229,14 @@
     const intervalSlider = document.getElementById('intervalSlider');
     const intervalValue = document.getElementById('intervalValue');
     const sequentialCheckbox = document.getElementById('sequential');
+    const uniqueWinnersCheckbox = document.getElementById('uniqueWinners');
 
     // Ayarlar
     let duration = 5;
     let winnerCount = 1;
     let nameInterval = 150;
     let sequential = true;
+    let uniqueWinners = true;
     let isDrawing = false;
 
     // Input etkinleştirme
@@ -258,6 +264,9 @@
     });
     sequentialCheckbox.addEventListener('change', e => {
       sequential = e.target.checked;
+    });
+    uniqueWinnersCheckbox.addEventListener('change', e => {
+      uniqueWinners = e.target.checked;
     });
 
     // Çekiliş fonksiyonları
@@ -307,7 +316,7 @@
         .map(name => name.trim())
         .filter(name => name.length > 0);
 
-      if (cleanedNames.length < winnerCount) {
+      if (uniqueWinners && cleanedNames.length < winnerCount) {
         alert('Yeterli isim yok (tekrarsız seçim için)!');
         return;
       }
@@ -325,13 +334,18 @@
           const winner = await drawOne(availableNames);
           drawnWinners.push(winner);
           updateWinnersList(drawnWinners);
-          availableNames = availableNames.filter(n => n !== winner);
+          if (uniqueWinners) {
+            availableNames = availableNames.filter(n => n !== winner);
+          }
           await sleep(500); // Kazanan gösterildikten sonra küçük bir bekleme
         }
       } else {
+        let tempAvailableNames = [...availableNames];
         const promises = Array.from({ length: winnerCount }, async () => {
-          const winner = await drawOne(availableNames);
-          availableNames = availableNames.filter(n => n !== winner);
+          const winner = await drawOne(tempAvailableNames);
+          if (uniqueWinners) {
+            tempAvailableNames = tempAvailableNames.filter(n => n !== winner);
+          }
           return winner;
         });
         drawnWinners = await Promise.all(promises);

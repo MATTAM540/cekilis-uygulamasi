@@ -102,7 +102,6 @@
       width: 100%;
       margin-bottom: 2rem;
       box-sizing: border-box;
-      min-height: 80px;
     }
     .winners-list {
       list-style: decimal inside;
@@ -163,14 +162,6 @@
       color: #e0e7ff;
       margin-top: 0.5rem;
     }
-    @media (max-width: 500px) {
-      .card, .winners-card {
-        padding: 1rem;
-      }
-      .container {
-        max-width: 98vw;
-      }
-    }
   </style>
 </head>
 <body>
@@ -186,6 +177,8 @@
     <div class="winners-card" id="winnersCard" style="display:none;">
       <h2 style="font-size:1.3rem; color:#fff; margin-bottom:0.5rem;">Kazananlar</h2>
       <ul class="winners-list" id="winnersList"></ul>
+      <h3 style="font-size:1.1rem; color:#e0e7ff; margin-top:1rem;">Yedek Kazananlar</h3>
+      <ul class="winners-list" id="yedekList"></ul>
     </div>
 
     <button class="settings-toggle" id="settingsToggle">
@@ -195,6 +188,8 @@
     <div class="settings-panel" id="settingsPanel">
       <label for="winnerCount">Kazanan Sayısı:</label>
       <input type="number" id="winnerCount" min="1" max="100" value="1" />
+      <label for="yedekCount">Yedek Sayısı:</label>
+      <input type="number" id="yedekCount" min="0" max="100" value="0" />
       <label for="durationSlider">Her çekilişin süresi (sn): 
         <span class="slider-value" id="durationValue">5</span>
       </label>
@@ -213,17 +208,19 @@
       </label>
     </div>
   </div>
+
   <script>
-    // Elementler
     const namesInput = document.getElementById('namesInput');
     const startDrawBtn = document.getElementById('startDrawBtn');
     const currentNameDiv = document.getElementById('currentName');
     const winnersList = document.getElementById('winnersList');
+    const yedekList = document.getElementById('yedekList');
     const winnersCard = document.getElementById('winnersCard');
     const settingsToggle = document.getElementById('settingsToggle');
     const settingsPanel = document.getElementById('settingsPanel');
     const chevron = document.getElementById('chevron');
     const winnerCountInput = document.getElementById('winnerCount');
+    const yedekCountInput = document.getElementById('yedekCount');
     const durationSlider = document.getElementById('durationSlider');
     const durationValue = document.getElementById('durationValue');
     const intervalSlider = document.getElementById('intervalSlider');
@@ -231,28 +228,28 @@
     const sequentialCheckbox = document.getElementById('sequential');
     const uniqueWinnersCheckbox = document.getElementById('uniqueWinners');
 
-    // Ayarlar
     let duration = 5;
     let winnerCount = 1;
+    let yedekCount = 0;
     let nameInterval = 150;
     let sequential = true;
     let uniqueWinners = true;
     let isDrawing = false;
 
-    // Input etkinleştirme
     namesInput.addEventListener('input', () => {
       startDrawBtn.disabled = !namesInput.value.trim();
     });
 
-    // Ayarlar paneli aç/kapa
     settingsToggle.addEventListener('click', () => {
       settingsPanel.classList.toggle('active');
       chevron.classList.toggle('rotate');
     });
 
-    // Ayar değişiklikleri
     winnerCountInput.addEventListener('input', e => {
       winnerCount = Number(e.target.value);
+    });
+    yedekCountInput.addEventListener('input', e => {
+      yedekCount = Number(e.target.value);
     });
     durationSlider.addEventListener('input', e => {
       duration = Number(e.target.value);
@@ -269,7 +266,6 @@
       uniqueWinners = e.target.checked;
     });
 
-    // Çekiliş fonksiyonları
     function shuffleArray(array) {
       const arr = [...array];
       for (let i = arr.length - 1; i > 0; i--) {
@@ -299,57 +295,64 @@
       });
     }
 
-    function updateWinnersList(winners) {
-      winnersList.innerHTML = '';
-      winners.forEach(name => {
+    function updateList(listElement, items) {
+      listElement.innerHTML = '';
+      items.forEach(name => {
         const li = document.createElement('li');
         li.textContent = name;
-        winnersList.appendChild(li);
+        listElement.appendChild(li);
       });
-      winnersCard.style.display = winners.length > 0 ? 'block' : 'none';
     }
 
     startDrawBtn.addEventListener('click', async () => {
       if (isDrawing) return;
-      const cleanedNames = namesInput.value
-        .split('\n')
-        .map(name => name.trim())
-        .filter(name => name.length > 0);
-
-      if (uniqueWinners && cleanedNames.length < winnerCount) {
-        alert('Yeterli isim yok (tekrarsız seçim için)!');
+      const allNames = namesInput.value.split('\n').map(n => n.trim()).filter(n => n);
+      if (uniqueWinners && allNames.length < winnerCount + yedekCount) {
+        alert('Yeterli isim yok!');
         return;
       }
 
       isDrawing = true;
       startDrawBtn.disabled = true;
       currentNameDiv.textContent = '';
-      updateWinnersList([]);
+      updateList(winnersList, []);
+      updateList(yedekList, []);
+      winnersCard.style.display = 'block';
 
-      let availableNames = shuffleArray(cleanedNames);
-      let drawnWinners = [];
+      let available = shuffleArray(allNames);
+      let kazananlar = [];
+      let yedekler = [];
+
+      const drawBatch = async (count, list, updateFunc) => {
+        for (let i = 0; i < count; i++) {
+          const winner = await drawOne(available);
+          list.push(winner);
+          updateFunc(list);
+          if (uniqueWinners) {
+            available = available.filter(n => n !== winner);
+          }
+          await sleep(500);
+        }
+      };
 
       if (sequential) {
-        for (let i = 0; i < winnerCount; i++) {
-          const winner = await drawOne(availableNames);
-          drawnWinners.push(winner);
-          updateWinnersList(drawnWinners);
-          if (uniqueWinners) {
-            availableNames = availableNames.filter(n => n !== winner);
-          }
-          await sleep(500); // Kazanan gösterildikten sonra küçük bir bekleme
-        }
+        await drawBatch(winnerCount, kazananlar, list => updateList(winnersList, list));
+        await drawBatch(yedekCount, yedekler, list => updateList(yedekList, list));
       } else {
-        let tempAvailableNames = [...availableNames];
-        const promises = Array.from({ length: winnerCount }, async () => {
-          const winner = await drawOne(tempAvailableNames);
-          if (uniqueWinners) {
-            tempAvailableNames = tempAvailableNames.filter(n => n !== winner);
-          }
-          return winner;
-        });
-        drawnWinners = await Promise.all(promises);
-        updateWinnersList(drawnWinners);
+        const drawParallel = async (count) => {
+          const promises = Array.from({ length: count }, async () => {
+            const winner = await drawOne(available);
+            if (uniqueWinners) {
+              available = available.filter(n => n !== winner);
+            }
+            return winner;
+          });
+          return await Promise.all(promises);
+        };
+        kazananlar = await drawParallel(winnerCount);
+        yedekler = await drawParallel(yedekCount);
+        updateList(winnersList, kazananlar);
+        updateList(yedekList, yedekler);
       }
 
       isDrawing = false;

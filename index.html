@@ -15,7 +15,7 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      overflow-x: hidden; /* Yatay scrollbar'ı engellemek için */
+      overflow-x: hidden;
     }
     .container {
       width: 100%;
@@ -94,9 +94,8 @@
       color: #fff;
       letter-spacing: 1px;
       text-shadow: 0 2px 12px rgba(99,102,241,0.2);
-      transition: transform 0.3s ease-out, color 0.3s; /* Yumuşak geçiş için */
+      transition: transform 0.3s ease-out, color 0.3s;
     }
-    /* Kazanan ismi büyütme animasyonu */
     .current-name.animate-winner {
       animation: zoom-winner 0.7s ease-in-out;
     }
@@ -106,9 +105,9 @@
         opacity: 0.8;
       }
       50% {
-        transform: scale(1.6); /* İsmi daha belirgin büyüt */
+        transform: scale(1.6);
         opacity: 1;
-        color: #fde047; /* Altın sarısı gibi dikkat çekici bir renk */
+        color: #fde047;
         text-shadow: 0 0 10px #fde047, 0 0 20px #fde047;
       }
       100% {
@@ -184,47 +183,26 @@
       color: #e0e7ff;
       margin-top: 0.5rem;
     }
-
-    /* Konfeti stilleri */
     #confetti-container {
       position: fixed;
       top: 0;
       left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none; /* Alttaki elementlere tıklamayı engellemez */
-      z-index: 9999; /* En üstte görünmesi için */
-      overflow: hidden; /* Konfetiler dışarı taşmasın */
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 9999;
+      overflow: hidden;
     }
     .confetti-piece {
-      position: absolute;
-      width: 10px;
-      height: 20px;
+      position: fixed;
       opacity: 0;
-      animation: fall 3s linear forwards;
-    }
-    /* Farklı konfeti şekilleri için ek sınıflar (isteğe bağlı) */
-    .confetti-piece.rectangle { height: 20px; width: 8px; }
-    .confetti-piece.square { height: 10px; width: 10px; }
-    /* .confetti-piece.circle { height: 10px; width: 10px; border-radius: 50%; } */
-
-
-    @keyframes fall {
-      0% {
-        transform: translateY(-20vh) rotateZ(0deg) rotateX(0deg); /* Daha yukarıdan başla */
-        opacity: 1;
-      }
-      100% {
-        transform: translateY(120vh) rotateZ(720deg) rotateX(360deg); /* Daha aşağıya düş ve daha fazla dön */
-        opacity: 0;
-      }
+      pointer-events: none;
+      z-index: 99999;
     }
   </style>
 </head>
 <body>
-  <!-- Konfeti Konteyneri -->
   <div id="confetti-container"></div>
-
   <div class="container">
     <div class="card">
       <h1>Çekiliş Uygulaması</h1>
@@ -233,14 +211,12 @@
       <button class="button" id="startDrawBtn" disabled>Çekilişi Başlat</button>
       <div class="current-name" id="currentName"></div>
     </div>
-
     <div class="winners-card" id="winnersCard" style="display:none;">
       <h2 style="font-size:1.3rem; color:#fff; margin-bottom:0.5rem;">Kazananlar</h2>
       <ul class="winners-list" id="winnersList"></ul>
       <h3 style="font-size:1.1rem; color:#e0e7ff; margin-top:1rem;">Yedek Kazananlar</h3>
       <ul class="winners-list" id="yedekList"></ul>
     </div>
-
     <button class="settings-toggle" id="settingsToggle">
       <span>Ayarlar ⚙️</span>
       <span class="chevron" id="chevron">&#9660;</span>
@@ -268,7 +244,6 @@
       </label>
     </div>
   </div>
-
   <script>
     const namesInput = document.getElementById('namesInput');
     const startDrawBtn = document.getElementById('startDrawBtn');
@@ -287,7 +262,7 @@
     const intervalValue = document.getElementById('intervalValue');
     const sequentialCheckbox = document.getElementById('sequential');
     const uniqueWinnersCheckbox = document.getElementById('uniqueWinners');
-    const confettiContainer = document.getElementById('confetti-container'); // Konfeti konteynerini seç
+    const confettiContainer = document.getElementById('confetti-container');
 
     let duration = 5;
     let winnerCount = 1;
@@ -307,15 +282,19 @@
     });
 
     winnerCountInput.addEventListener('input', e => {
-      winnerCount = Number(e.target.value);
-      if (winnerCount < 1) winnerCount = 1; // Minimum 1 kazanan
-      e.target.value = winnerCount;
+      const val = e.target.valueAsNumber;
+      if (!isNaN(val) && val > 0) {
+        winnerCount = val;
+      }
     });
+
     yedekCountInput.addEventListener('input', e => {
-      yedekCount = Number(e.target.value);
-      if (yedekCount < 0) yedekCount = 0; // Minimum 0 yedek
-      e.target.value = yedekCount;
+      const val = e.target.valueAsNumber;
+      if (!isNaN(val) && val >= 0) {
+        yedekCount = val;
+      }
     });
+
     durationSlider.addEventListener('input', e => {
       duration = Number(e.target.value);
       durationValue.textContent = duration;
@@ -344,74 +323,84 @@
       return new Promise(resolve => setTimeout(resolve, ms));
     }
 
-    // --- Konfeti Fonksiyonları ---
-    const confettiColors = ['#f94144', '#f3722c', '#f8961e', '#f9c74f', '#90be6d', '#43aa8b', '#577590', '#277da1', '#fefae0', '#dda15e', '#faedcd'];
-    const confettiShapes = ['rectangle', 'square']; // 'circle' için CSS'te .confetti-piece.circle tanımı yapılmalı
+    // ----- Konfeti -----
+    const confettiColors = ['#f94144', '#f3722c', '#f8961e', '#f9c74f', '#90be6d', '#43aa8b', '#577590', '#277da1'];
+    const confettiShapes = ['rectangle', 'square'];
 
-    function createConfettiPiece() {
+    // -- Havai fişek patlaması --
+    function showConfettiFirework(count = 56) {
+      const centerX = window.innerWidth / 2;
+      const centerY = window.innerHeight / 2;
+      for (let i = 0; i < count; i++) {
+        const angle = (2 * Math.PI * i) / count + (Math.random() - 0.5) * 0.11; // biraz saçılım
+        createConfettiParticle(centerX, centerY, angle);
+      }
+    }
+
+    function createConfettiParticle(x, y, angle) {
       const piece = document.createElement('div');
       piece.classList.add('confetti-piece');
-      
-      // Rastgele şekil
+
+      // Boyut ve renk
       const shape = confettiShapes[Math.floor(Math.random() * confettiShapes.length)];
-      piece.classList.add(shape);
       if (shape === 'square') {
-        const size = Math.random() * 8 + 8; // 8px ile 16px arası
+        const size = Math.random() * 10 + 8;
         piece.style.width = size + 'px';
         piece.style.height = size + 'px';
-      } else { // rectangle
-        piece.style.width = (Math.random() * 6 + 6) + 'px'; // 6px ile 12px arası
-        piece.style.height = (Math.random() * 10 + 10) + 'px'; // 10px ile 20px arası
+        piece.style.borderRadius = '2px';
+      } else {
+        piece.style.width = (Math.random() * 8 + 4) + 'px';
+        piece.style.height = (Math.random() * 24 + 14) + 'px';
+        piece.style.borderRadius = '3px';
       }
-
       piece.style.backgroundColor = confettiColors[Math.floor(Math.random() * confettiColors.length)];
-      piece.style.left = Math.random() * 100 + 'vw'; // Ekran genişliğinde rastgele pozisyon
-      piece.style.animationDelay = Math.random() * 0.3 + 's'; // Başlangıçta hafif gecikme
-      
-      // Başlangıç dönüşü ve animasyon süresinde çeşitlilik
-      piece.style.transform = `rotateZ(${Math.random() * 360}deg)`;
-      const animDuration = Math.random() * 1 + 2.5; // 2.5s ile 3.5s arası düşme süresi
-      piece.style.animationDuration = animDuration + 's';
 
+      // Ana başlama pozisyonu
+      piece.style.left = x + 'px';
+      piece.style.top = y + 'px';
+      piece.style.position = 'fixed';
+      piece.style.opacity = 1;
+      piece.style.transform = 'translate(-50%, -50%) scale(1)';
+
+      // Hedef pozisyon
+      const distance = Math.random() * 100 + 140; // Uzaklık
+      const destX = Math.cos(angle) * distance;
+      const destY = Math.sin(angle) * distance;
+
+      // Animasyon
+      piece.animate([
+        { transform: 'translate(-50%, -50%) scale(1)', opacity: 1 },
+        { transform: `translate(calc(-50% + ${destX}px), calc(-50% + ${destY}px)) scale(1.1) rotate(${Math.random()*720-360}deg)`, opacity: 1, offset: 0.65 },
+        { transform: `translate(calc(-50% + ${destX*1.09}px), calc(-50% + ${destY*1.09}px)) scale(.96) rotate(${Math.random()*720-360}deg)`, opacity: 0.32, offset: 0.96 },
+        { transform: `translate(calc(-50% + ${destX*1.14}px), calc(-50% + ${destY*1.17}px)) scale(.91) rotate(${Math.random()*720-360}deg)`, opacity: 0 }
+      ], {
+        duration: 1300 + Math.random() * 280,
+        easing: "cubic-bezier(.17,.67,.83,.67)"
+      });
       confettiContainer.appendChild(piece);
-
-      setTimeout(() => {
-        piece.remove();
-      }, (animDuration + 0.5) * 1000); // Animasyon süresi + gecikme payı
+      setTimeout(() => piece.remove(), 1800);
     }
-
-    function showConfettiEffect(count = 60) {
-      for (let i = 0; i < count; i++) {
-        setTimeout(createConfettiPiece, i * 20); // Konfetiler kademeli olarak çıksın
-      }
-    }
-    // --- Konfeti Fonksiyonları Bitiş ---
 
     async function animateAndShowWinner(name, isYedek = false) {
-        currentNameDiv.textContent = isYedek ? `Yedek: ${name}` : name;
-        currentNameDiv.classList.add('animate-winner');
-        showConfettiEffect(70); // 70 adet konfeti
-        // Animasyon süresi (CSS'te 0.7s) + konfetilerin biraz görünür kalması için ek süre
-        await sleep(700); 
-        currentNameDiv.classList.remove('animate-winner');
-        await sleep(800); // İsim ekranda biraz daha kalsın
+      currentNameDiv.textContent = isYedek ? `Yedek: ${name}` : name;
+      currentNameDiv.classList.add('animate-winner');
+      showConfettiFirework();
+      await sleep(700); // animasyon süresi
+      currentNameDiv.classList.remove('animate-winner');
+      await sleep(800);
     }
-
 
     async function drawOne(availableNames) {
       const durationMs = duration * 1000;
       const startTime = Date.now();
-      // Hızlı isim geçişi sırasında animasyon/konfeti olmayacak. Sadece son kazanan için olacak.
       return new Promise(resolve => {
         const intervalId = setInterval(() => {
           const randomIndex = Math.floor(Math.random() * availableNames.length);
           const randomName = availableNames[randomIndex];
           currentNameDiv.textContent = randomName;
-          
           const elapsed = Date.now() - startTime;
           if (elapsed >= durationMs) {
             clearInterval(intervalId);
-            // Son gösterilen isim değil, o anki rastgele seçilen isim kazanan olacak
             resolve(availableNames[Math.floor(Math.random() * availableNames.length)]);
           }
         }, nameInterval);
@@ -430,22 +419,21 @@
     startDrawBtn.addEventListener('click', async () => {
       if (isDrawing) return;
       let allNames = namesInput.value.split('\n').map(n => n.trim()).filter(n => n);
-      
+
       // Kazanan ve yedek sayısı kontrolü
       const totalRequiredUnique = winnerCount + yedekCount;
       if (uniqueWinners && allNames.length < totalRequiredUnique) {
         alert(`Benzersiz kazananlar için en az ${totalRequiredUnique} farklı isme ihtiyaç var. Lütfen listeyi kontrol edin.`);
         return;
       }
-       if (!uniqueWinners && allNames.length === 0) {
+      if (!uniqueWinners && allNames.length === 0) {
         alert('Lütfen çekiliş için isim listesini girin.');
         return;
       }
 
-
       isDrawing = true;
       startDrawBtn.disabled = true;
-      currentNameDiv.textContent = ''; // Başlangıçta temizle
+      currentNameDiv.textContent = '';
       updateList(winnersList, []);
       updateList(yedekList, []);
       winnersCard.style.display = 'block';
@@ -454,48 +442,34 @@
       let kazananlar = [];
       let yedekler = [];
 
-      // Kazananları belirleme fonksiyonu
       const drawBatch = async (count, list, updateFunc, isYedekBatch = false) => {
         for (let i = 0; i < count; i++) {
-          if (uniqueWinners && available.length === 0) {
-            console.warn("Benzersiz kazananlar için uygun isim kalmadı.");
-            break; // Eğer benzersiz kazanan kalmadıysa döngüyü sonlandır
-          }
-          const currentAvailableForDraw = uniqueWinners ? available : allNames; // Eğer benzersiz değilse tüm listeden seç
-          if(currentAvailableForDraw.length === 0 && allNames.length > 0 && !uniqueWinners) {
-            // Bu durum pek olası değil ama bir güvenlik önlemi
-             console.warn("Çekiliş için isim kalmadı (non-unique mod).");
-             break;
-          }
-
+          if (uniqueWinners && available.length === 0) break;
+          const currentAvailableForDraw = uniqueWinners ? available : allNames;
+          if(currentAvailableForDraw.length === 0 && allNames.length > 0 && !uniqueWinners) break;
 
           const winner = await drawOne(currentAvailableForDraw);
-          await animateAndShowWinner(winner, isYedekBatch); // Animasyon ve konfeti burada
-          
+          await animateAndShowWinner(winner, isYedekBatch);
           list.push(winner);
           updateFunc(list);
-          
           if (uniqueWinners) {
             available = available.filter(n => n !== winner);
           }
-          // await sleep(500); // Her kazanan sonrası kısa bir bekleme, animateAndShowWinner içinde zaten var
         }
       };
 
       if (sequential) {
         await drawBatch(winnerCount, kazananlar, list => updateList(winnersList, list), false);
         await drawBatch(yedekCount, yedekler, list => updateList(yedekList, list), true);
-      } else { // Paralel Çekiliş (Kazananlar toplu belirlenir, sonra sırayla gösterilir)
+      } else {
         currentNameDiv.textContent = "Kazananlar Belirleniyor...";
-        
         const drawPromises = [];
         let tempAvailableForParallel = shuffleArray(allNames);
 
-        // Kazananları belirle
         for (let i = 0; i < winnerCount; i++) {
             if (uniqueWinners && tempAvailableForParallel.length === 0) break;
             const currentPool = uniqueWinners ? tempAvailableForParallel : allNames;
-             if(currentPool.length === 0 && allNames.length > 0 && !uniqueWinners) break;
+            if(currentPool.length === 0 && allNames.length > 0 && !uniqueWinners) break;
 
             drawPromises.push(
                 drawOne(currentPool).then(winner => {
@@ -509,7 +483,6 @@
         kazananlar = await Promise.all(drawPromises);
         updateList(winnersList, kazananlar);
 
-        // Yedekleri belirle
         const yedekPromises = [];
         for (let i = 0; i < yedekCount; i++) {
             if (uniqueWinners && tempAvailableForParallel.length === 0) break;
@@ -527,8 +500,7 @@
         }
         yedekler = await Promise.all(yedekPromises);
         updateList(yedekList, yedekler);
-        
-        // Belirlenen kazananları ve yedekleri sırayla animasyonlu göster
+
         currentNameDiv.textContent = "Kazananlar Açıklanıyor...";
         await sleep(1000);
 
@@ -539,7 +511,6 @@
             await animateAndShowWinner(yedek, true);
         }
       }
-
       isDrawing = false;
       startDrawBtn.disabled = false;
       currentNameDiv.textContent = 'Çekiliş Tamamlandı!';
